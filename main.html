@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Cut Angle Trainer</title>
+  <style>
+    body { text-align: center; font-family: sans-serif; }
+    canvas { border: 1px solid #000; margin-top: 20px; }
+  </style>
+</head>
+<body>
+
+<h2>Angle Trainer</h2>
+
+<select id="angleSelect" onchange="setAngleChoice(this)">
+    <option value='0'>4</option>
+    <option value='1'>8</option>
+    <option value='2'>16</option>
+    <option value='3'>All</option>
+</select>
+
+<br>
+
+<canvas id="angleCanvas" width="500" height="500"></canvas>
+
+<h2>Click on the cue ball aiming point</h2>
+<canvas id="circleCanvas" width="500" height="300"></canvas>
+<br>
+<button id="submitButton" onclick="submit()" style="font-size: 24px; padding: 20px 40px;">Submit</button>
+<p id="circleOutput"></p>
+
+<script>
+
+
+  // element code
+  const circleCanvas = document.getElementById('circleCanvas')
+  const angleCanvas = document.getElementById('angleCanvas')
+
+  // math code
+
+    var angleSelect = '0'
+
+    function getRandomAngle() {
+      switch (angleSelect) {
+        case '0':
+          angleChoices = [-45, -30, -15, 0, 15, 30, 45]
+          return  angleChoices[Math.floor(Math.random() * angleChoices.length)]
+        case '1':
+          angleChoices = [-52.5, -45, -37.5, -30, -22.5 -15, -7.5, 0, 7.5, 15, 22.5, 30, 37.5, 45, 52.5]
+          return  angleChoices[Math.floor(Math.random() * angleChoices.length)]
+        case '2':
+          angleChoices = [-56.25, -52.5, -48.75, -45, -41.25, -37.5, -33.75, -30, -26.25, -22.5, -18.75, -15, -11.25, -7.5, -3.75, 0, 3.75, 7.5, 11.25, 15, 18.75, 22.5, 26.25, 30, 33.75, 37.5, 41.25, 45, 48.75, 52.5, 56.25]
+          return  angleChoices[Math.floor(Math.random() * angleChoices.length)]
+        case '3':
+          const max = 65
+          const min = -65
+          return Math.floor(Math.random() * (max - min + 1)) + min
+        }
+
+    }
+
+    function getTableRandomAngle() {
+      const max = 90
+      const min = 0
+      return Math.floor(Math.random() * (max - min + 1)) + min
+    }
+
+    function setAngleChoice(selectElement) {
+      angleSelect = selectElement.value;
+    }
+  
+  // circle consts
+    const circleRadius = 100;
+    const centerCircleCoords = { x: 250, y: 150 }
+
+  // draw code
+
+  function clearCircleCanvas() {
+    circleCtx = circleCanvas.getContext('2d')
+    circleCtx.clearRect(0, 0, circleCanvas.width, circleCanvas.height)
+  }
+
+  function drawCircle(centerCoords, radius, type) {
+    if (type == "center") {
+        var startAngle = 0
+        var endAngle = 2 * Math.PI
+
+    }
+    if (type == "left") {
+        var startAngle = Math.PI / 2
+        var endAngle = 3 * Math.PI / 2
+    }
+    if (type == "right") {
+        var startAngle = -Math.PI / 2
+        var endAngle = Math.PI / 2
+    }
+
+
+    circleCtx = circleCanvas.getContext('2d');
+
+    // draw circle
+    circleCtx.beginPath();
+    circleCtx.arc(centerCoords.x, centerCoords.y, radius, startAngle, endAngle)
+
+    if (type != "center") {
+        circleCtx.strokeStyle = 'lightgray'
+    }
+    circleCtx.stroke();
+
+    // draw guidelines
+    for (let i = startAngle; i < endAngle + Math.PI / 4; i += Math.PI / 4) {
+      circleCtx.moveTo(centerCoords.x, centerCoords.y)
+      circleCtx.lineTo(radius * Math.cos(i) + centerCoords.x, radius * Math.sin(i) + centerCoords.y)
+    }
+    circleCtx.stroke()
+
+    circleCtx.strokeStyle = 'black'
+  }
+
+ function drawCircles(centerCoords, radius) {
+    clearCircleCanvas()
+
+
+    drawCircle(centerCoords, radius, 'center')
+    drawCircle({ x: centerCoords.x - 2*radius, y: centerCoords.y }, radius, 'right')
+    drawCircle({ x: centerCoords.x + 2*radius, y: centerCoords.y }, radius, 'left')
+  }
+
+  function drawLineOnCircleCanvas(firstCoord, secondCoord, colour) {
+    circleCtx = circleCanvas.getContext('2d')
+
+    circleCtx.beginPath()
+    circleCtx.arc(firstCoord.x, firstCoord.y, 5, 0, 2 * Math.PI)
+    circleCtx.fillStyle = colour
+    circleCtx.fill()
+
+    circleCtx.beginPath()
+    circleCtx.arc(secondCoord.x, secondCoord.y, 5, 0, 2 * Math.PI)
+    circleCtx.fillStyle = colour
+    circleCtx.fill()
+
+    circleCtx.fillStyle = 'black'
+
+    circleCtx.beginPath()
+    circleCtx.moveTo(firstCoord.x, firstCoord.y)
+    circleCtx.lineTo(secondCoord.x, secondCoord.y)
+    circleCtx.lineWidth = 5
+    circleCtx.strokeStyle = colour
+    circleCtx.stroke()
+    circleCtx.lineWidth = 1
+    circleCtx.strokeStyle = 'black'
+  }
+
+  function clearAngleCanvas() {
+    angleCtx = angleCanvas.getContext('2d')
+    angleCtx.clearRect(0, 0, angleCanvas.width, angleCanvas.height)
+  }
+
+  function drawTable(degrees, colour) {
+    const rad = degrees * Math.PI / 180
+
+    var startCoords = [{x:50, y:50}, {x:150, y:50}, {x:250, y:50}, {x:350, y:50}, {x:450, y:50}, {x:50, y:50}, {x:50, y:150}, {x:50, y:250}, {x:50, y:350}, {x:50, y:450}]
+    var endCoords = [{x:50, y:450}, {x:150, y:450}, {x:250, y:450}, {x:350, y:450}, {x:450, y:450}, {x:450, y:50}, {x:450, y:150}, {x:450, y:250}, {x:450, y:350}, {x:450, y:450}]
+
+    angleCtx = angleCanvas.getContext('2d')
+    angleCtx.beginPath()
+
+
+    const center = {x:250, y:250}
+
+    for (let i = 0; i < startCoords.length; i++) {
+      rotatedStart = rotateCoordAroundPoint(startCoords[i], center, rad)
+      rotatedEnd = rotateCoordAroundPoint(endCoords[i], center, rad)
+      angleCtx.moveTo(rotatedStart.x, rotatedStart.y)
+      angleCtx.lineTo(rotatedEnd.x, rotatedEnd.y)
+    }
+
+    angleCtx.strokeStyle = colour
+    angleCtx.stroke()
+    angleCtx.strokeStyle = 'black'
+  }
+
+  function rotateCoordAroundPoint(coord, point, rad) {
+    // translate
+      const translated = {x: coord.x - point.x, y: coord.y - point.y}
+    // pivot
+      const rotated = rotateVector(translated, rad)
+    // translate
+      return {x: rotated.x + point.x, y: rotated.y + point.y}
+  }
+
+  function rotateVector(vector, rad) {
+    return {
+        x: vector.x * Math.cos(rad) - vector.y * Math.sin(rad), 
+        y: vector.x * Math.sin(rad) + vector.y * Math.cos(rad)
+    }
+  }
+
+  function drawAngle(degrees, colour) {
+    const rad = degrees * Math.PI / 180
+    
+    // canvas 500 500
+    const straightVector = {x: 0, y: -300}
+
+    // rotate vector
+    const rotatedVector = rotateVector(straightVector, rad)
+
+    // plot
+    const xOffset = 250
+    const yOffset = 400
+
+    angleCtx = angleCanvas.getContext('2d')
+    angleCtx.beginPath()
+
+    angleCtx.moveTo(xOffset, yOffset)
+    angleCtx.lineTo(straightVector.x + xOffset, straightVector.y + yOffset)
+    
+    angleCtx.strokeStyle = colour
+
+    angleCtx.moveTo(xOffset, yOffset)
+    angleCtx.lineTo(rotatedVector.x + xOffset, rotatedVector.y + yOffset)
+
+    angleCtx.stroke()
+    
+    angleCtx.strokeStyle = 'black'
+  }
+
+  // interact state code
+  var isMouseDownInCircle = false
+  var lineDistance = 0
+  var postSubmit = false
+  
+  // event code
+
+    document.addEventListener('keydown', function(event) {
+        if (event.code === 'Space') {
+            // Prevent the default action (e.g., scrolling the page)
+            event.preventDefault();
+
+            submit()
+        }
+    });
+
+  function submit() {
+    if (!postSubmit) {
+        expectedAngle = -1 * Math.asin(lineDistance/2/circleRadius) * 180 / Math.PI
+
+        document.getElementById('circleOutput').textContent = `cut = ${lineDistance/2/circleRadius}, cut angle = ${expectedAngle.toPrecision(3)}, actual angle = ${angle}
+        off by ${(expectedAngle-angle).toPrecision(3)} degrees`;
+
+
+        drawAngle(expectedAngle, 'red')
+
+        const dist = Math.sin(angle * Math.PI / 180) * -2 * circleRadius
+
+        snapCoords = getSnapCoords({x: dist + centerCircleCoords.x, y: 0}, centerCircleCoords, circleRadius)
+        drawLineOnCircleCanvas(snapCoords, {x: centerCircleCoords.x, y: snapCoords.y}, 'blue')
+
+        postSubmit = true
+    } else {
+        // initial code
+        drawCircles(centerCircleCoords, circleRadius)
+
+        angle = getRandomAngle()
+
+        clearAngleCanvas()
+        drawTable(getTableRandomAngle(), 'lightgray')
+        drawAngle(angle, 'black')
+        
+        postSubmit = false
+    }
+  }
+
+  function getSnapCoords(coords, centerCircleCoords, circleRadius) {
+    const newCoords = {x: coords.x, y: coords.y}
+    if (newCoords.x < centerCircleCoords.x - 2 * circleRadius) {
+        newCoords.x = centerCircleCoords.x - 2 * circleRadius
+    }
+    if (newCoords.x > centerCircleCoords.x + 2 * circleRadius) {
+        newCoords.x = centerCircleCoords.x + 2 * circleRadius
+    }
+
+    let distFromCenter = Math.abs(newCoords.x - centerCircleCoords.x)
+    if (distFromCenter > circleRadius) {
+        distFromCenter = 2 * circleRadius - distFromCenter
+    }
+
+    newCoords.y = centerCircleCoords.y - Math.sqrt(Math.pow(circleRadius, 2) - Math.pow(distFromCenter, 2))
+
+    return newCoords
+  }
+
+  circleCanvas.addEventListener('mousedown', function(e) {
+    const rect = circleCanvas.getBoundingClientRect();
+
+    const mouseCoords = {x: e.clientX - rect.left, y: e.clientY - rect.top}
+
+    isMouseDownInCircle = true
+
+    drawCircles(centerCircleCoords, circleRadius)
+
+    snapCoords = getSnapCoords(mouseCoords, centerCircleCoords, circleRadius)
+    drawLineOnCircleCanvas(snapCoords, {x: centerCircleCoords.x, y: snapCoords.y}, 'red')
+  
+    lineDistance = snapCoords.x - centerCircleCoords.x
+  })
+
+  circleCanvas.addEventListener('mouseup', function(e) {
+    const rect = circleCanvas.getBoundingClientRect();
+
+    const mouseCoords = {x: e.clientX - rect.left, y: e.clientY - rect.top}
+
+    drawCircles(centerCircleCoords, circleRadius)
+    snapCoords = getSnapCoords(mouseCoords, centerCircleCoords, circleRadius)
+    drawLineOnCircleCanvas(snapCoords, {x: centerCircleCoords.x, y: snapCoords.y}, 'red')
+  
+    lineDistance = snapCoords.x - centerCircleCoords.x
+
+    isMouseDownInCircle = false
+  })
+
+  circleCanvas.addEventListener('mousemove', function(e) {
+    const rect = circleCanvas.getBoundingClientRect();
+
+    const mouseCoords = {x: e.clientX - rect.left, y: e.clientY - rect.top}
+
+    if (isMouseDownInCircle) {
+        drawCircles(centerCircleCoords, circleRadius)
+            
+        snapCoords = getSnapCoords(mouseCoords, centerCircleCoords, circleRadius)
+        drawLineOnCircleCanvas(snapCoords, {x: centerCircleCoords.x, y: snapCoords.y}, 'red')
+  
+        lineDistance = snapCoords.x - centerCircleCoords.x
+    }
+
+  })
+
+  circleCanvas.addEventListener('touchmove', function(e) {
+    const rect = circleCanvas.getBoundingClientRect();
+
+    const mouseCoords = {x: e.touches[0].clientX - rect.left, y: e.touches[0].clientY - rect.top}
+
+    drawCircles(centerCircleCoords, circleRadius)
+    
+    snapCoords = getSnapCoords(mouseCoords, centerCircleCoords, circleRadius)
+    drawLineOnCircleCanvas(snapCoords, {x: centerCircleCoords.x, y: snapCoords.y}, 'red')
+  
+    lineDistance = snapCoords.x - centerCircleCoords.x 
+  })
+
+
+
+  // initial code
+  drawCircles(centerCircleCoords, circleRadius)
+
+  var angle = getRandomAngle()
+
+  clearAngleCanvas()
+
+  drawTable(getTableRandomAngle(), 'lightgray')
+  drawAngle(angle, 'black')
+</script>
+
+</body>
+</html>
