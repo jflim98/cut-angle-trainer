@@ -336,6 +336,8 @@
   })
 
   circleCanvas.addEventListener('touchmove', function(e) {
+    e.preventDefault()
+
     const rect = circleCanvas.getBoundingClientRect();
 
     const mouseCoords = {x: e.touches[0].clientX - rect.left, y: e.touches[0].clientY - rect.top}
@@ -346,9 +348,7 @@
     drawLineOnCircleCanvas(snapCoords, {x: centerCircleCoords.x, y: snapCoords.y}, 'red')
   
     lineDistance = snapCoords.x - centerCircleCoords.x 
-  })
-
-
+  }, { passive: false })
 
   // initial code
   drawCircles(centerCircleCoords, circleRadius)
@@ -363,3 +363,4 @@
 
 </body>
 </html>
+
