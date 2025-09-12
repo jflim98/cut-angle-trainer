@@ -17,6 +17,8 @@
     <option value='1'>8</option>
     <option value='2'>16</option>
     <option value='3'>All</option>
+    <option value='4'>4&lt;30</option>
+    <option value='5'>8&lt;30</option>
 </select>
 
 <br>
@@ -55,6 +57,12 @@
           const max = 65
           const min = -65
           return Math.floor(Math.random() * (max - min + 1)) + min
+        case '4':
+          angleChoices = [-30, -22.5 -15, -7.5, 0, 7.5, 15, 22.5, 30]
+          return  angleChoices[Math.floor(Math.random() * angleChoices.length)]
+        case '5':
+          angleChoices = [-30, -26.25, -22.5, -18.75, -15, -11.25, -7.5, -3.75, 0, 3.75, 7.5, 11.25, 15, 18.75, 22.5, 26.25, 30]
+          return  angleChoices[Math.floor(Math.random() * angleChoices.length)]
         }
 
     }
@@ -350,6 +358,8 @@
     lineDistance = snapCoords.x - centerCircleCoords.x 
   }, { passive: false })
 
+
+
   // initial code
   drawCircles(centerCircleCoords, circleRadius)
 
@@ -363,4 +373,3 @@
 
 </body>
 </html>
-
